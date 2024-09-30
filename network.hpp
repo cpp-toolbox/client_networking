@@ -1,5 +1,5 @@
-#ifndef NETWORK_HPP
-#define NETWORK_HPP
+#ifndef CLIENT_NETWORK_HPP
+#define CLIENT_NETWORK_HPP
 
 #include <enet/enet.h>
 #include <functional>
@@ -16,20 +16,14 @@ using OnConnectCallback = std::function<void()>;
 
 class Network {
   public:
-    Network(std::string ip_address, uint16_t port, OnConnectCallback on_connect_callback = default_on_connect_callback)
-        : ip_address(std::move(ip_address)), port(port), on_connect_callback(std::move(on_connect_callback)),
-          client(nullptr), peer(nullptr){};
-
+    Network(std::string ip_address, uint16_t port, const std::vector<spdlog::sink_ptr> &sinks = {},
+            OnConnectCallback on_connect_callback = default_on_connect_callback);
     ~Network();
-
+    LoggerComponent logger_component;
     void initialize_network();
-
     bool attempt_to_connect_to_server();
-
-    std::vector<PacketData> get_network_events_received_since_last_tick();
-
+    std::vector<void *> get_network_events_received_since_last_tick();
     void disconnect_from_server();
-
     void send_packet(const void *data, size_t data_size, bool reliable = false);
 
   private:
@@ -40,4 +34,4 @@ class Network {
     ENetPeer *peer;
 };
 
-#endif // NETWORK_HPP
+#endif // CLIENT_NETWORK_HPP
