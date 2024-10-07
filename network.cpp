@@ -80,30 +80,39 @@ bool Network::attempt_to_connect_to_server() {
  * the possible packets the client can receive. /return the packets received
  * /author cuppajoeman
  */
-std::vector<void *> Network::get_network_events_received_since_last_tick() {
+std::vector<PacketWithSize> Network::get_network_events_received_since_last_tick() {
     ENetEvent event;
-    std::vector<void *> received_packets;
+    std::vector<PacketWithSize> received_packets;
+
+    PacketWithSize packet_with_size;
 
     while (enet_host_service(client, &event, 0) > 0) {
         switch (event.type) {
+            case ENET_EVENT_TYPE_RECEIVE:
+                if (logger_component.logging_enabled) {
+                    logger_component.get_logger()->info("Packet received from peer {}: size {} bytes.", 
+                                                         event.peer->address.host, event.packet->dataLength);
+                }
 
-        case ENET_EVENT_TYPE_RECEIVE:
-            if (logger_component.logging_enabled) {
-                logger_component.get_logger()->info("Packet received from peer {}.", event.peer->address.host);
-            }
-            received_packets.push_back(event.packet);
-            enet_packet_destroy(event.packet);
-            break;
+                packet_with_size.data.resize(event.packet->dataLength);
 
-        case ENET_EVENT_TYPE_DISCONNECT:
-            if (logger_component.logging_enabled) {
-                logger_component.get_logger()->info("Peer {} disconnected.", event.peer->address.host);
-            }
-            event.peer->data = nullptr;
-            break;
+                std::memcpy(packet_with_size.data.data(), event.packet->data, event.packet->dataLength);
+                packet_with_size.size = event.packet->dataLength; 
 
-        default:
-            break;
+                received_packets.push_back(packet_with_size);
+
+                enet_packet_destroy(event.packet);
+                break;
+
+            case ENET_EVENT_TYPE_DISCONNECT:
+                if (logger_component.logging_enabled) {
+                    logger_component.get_logger()->info("Peer {} disconnected.", event.peer->address.host);
+                }
+                event.peer->data = nullptr;
+                break;
+
+            default:
+                break;
         }
     }
 
