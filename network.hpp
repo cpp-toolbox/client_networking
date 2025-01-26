@@ -12,13 +12,12 @@
 #include <cstddef> // for size_t
 
 struct PacketWithSize {
-    std::vector<char> data;  // Use std::vector<char> to hold packet data
-    size_t size;             // Size of the packet data
+    std::vector<char> data; // Use std::vector<char> to hold packet data
+    size_t size;            // Size of the packet data
 };
 
 // Default packet callback that logs receipt of packets
 void default_on_connect_callback();
-
 
 using OnConnectCallback = std::function<void()>;
 
@@ -34,11 +33,12 @@ class Network {
     void disconnect_from_server();
     void send_packet(const void *data, size_t data_size, bool reliable = false);
 
+    ENetHost *client;
+
   private:
     std::string ip_address;
     uint16_t port;
     OnConnectCallback on_connect_callback;
-    ENetHost *client;
     ENetPeer *peer;
 };
 

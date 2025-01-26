@@ -43,8 +43,7 @@ void Network::initialize_network() {
 
 /**
  * /brief attempts to connect to the server with ip address specified in the
- * constructor /return whether or not the connection was successful /author
- * cuppajoeman
+ * constructor returns whether or not the connection was successful
  */
 bool Network::attempt_to_connect_to_server() {
     ENetAddress address;
@@ -88,31 +87,31 @@ std::vector<PacketWithSize> Network::get_network_events_received_since_last_tick
 
     while (enet_host_service(client, &event, 0) > 0) {
         switch (event.type) {
-            case ENET_EVENT_TYPE_RECEIVE:
-                if (logger_component.logging_enabled) {
-                    logger_component.get_logger()->info("Packet received from peer {}: size {} bytes.", 
-                                                         event.peer->address.host, event.packet->dataLength);
-                }
+        case ENET_EVENT_TYPE_RECEIVE:
+            if (logger_component.logging_enabled) {
+                logger_component.get_logger()->info("Packet received from peer {}: size {} bytes.",
+                                                    event.peer->address.host, event.packet->dataLength);
+            }
 
-                packet_with_size.data.resize(event.packet->dataLength);
+            packet_with_size.data.resize(event.packet->dataLength);
 
-                std::memcpy(packet_with_size.data.data(), event.packet->data, event.packet->dataLength);
-                packet_with_size.size = event.packet->dataLength; 
+            std::memcpy(packet_with_size.data.data(), event.packet->data, event.packet->dataLength);
+            packet_with_size.size = event.packet->dataLength;
 
-                received_packets.push_back(packet_with_size);
+            received_packets.push_back(packet_with_size);
 
-                enet_packet_destroy(event.packet);
-                break;
+            enet_packet_destroy(event.packet);
+            break;
 
-            case ENET_EVENT_TYPE_DISCONNECT:
-                if (logger_component.logging_enabled) {
-                    logger_component.get_logger()->info("Peer {} disconnected.", event.peer->address.host);
-                }
-                event.peer->data = nullptr;
-                break;
+        case ENET_EVENT_TYPE_DISCONNECT:
+            if (logger_component.logging_enabled) {
+                logger_component.get_logger()->info("Peer {} disconnected.", event.peer->address.host);
+            }
+            event.peer->data = nullptr;
+            break;
 
-            default:
-                break;
+        default:
+            break;
         }
     }
 
