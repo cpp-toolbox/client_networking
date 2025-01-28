@@ -6,7 +6,7 @@ void default_on_connect_callback() { spdlog::info("connected to server"); }
 Network::Network(std::string ip_address, uint16_t port, const std::vector<spdlog::sink_ptr> &sinks,
                  OnConnectCallback on_connect_callback)
     : ip_address(std::move(ip_address)), port(port), on_connect_callback(std::move(on_connect_callback)),
-      client(nullptr), peer(nullptr) {
+      client(nullptr), peer(nullptr), recently_sent_packet_sizes(10), recently_sent_packet_times(10) {
     logger_component = LoggerComponent("network", sinks);
 }
 
@@ -15,6 +15,30 @@ Network::~Network() {
         enet_host_destroy(client);
     }
     enet_deinitialize();
+}
+
+float Network::average_bits_per_second_sent() {
+    using namespace std::chrono;
+
+    if (recently_sent_packet_sizes.empty() || recently_sent_packet_times.size() < 2) {
+        return 0.0f; // Not enough data to calculate average
+    }
+
+    // Calculate the total size in bits and the time difference in seconds
+    size_t total_size_bits = 0;
+    for (const size_t size : recently_sent_packet_sizes) {
+        total_size_bits += size * 8;
+    }
+
+    auto time_span =
+        duration_cast<duration<float>>(recently_sent_packet_times.back() - recently_sent_packet_times.front());
+
+    float total_time_seconds = time_span.count();
+    if (total_time_seconds == 0.0f) {
+        return 0.0f; // Avoid division by zero
+    }
+
+    return static_cast<float>(total_size_bits) / total_time_seconds; // Bits per second
 }
 
 /**
@@ -155,4 +179,6 @@ void Network::send_packet(const void *data, size_t data_size, bool reliable) {
     ENetPacket *packet = enet_packet_create(data, data_size, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
     enet_peer_send(peer, 0, packet);
     enet_host_flush(peer->host);
+    recently_sent_packet_sizes.push_back(packet->dataLength);
+    recently_sent_packet_times.push_back(std::chrono::steady_clock::now());
 }
