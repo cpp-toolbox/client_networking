@@ -11,11 +11,6 @@
 
 #include <cstddef> // for size_t
 
-struct PacketWithSize {
-    std::vector<char> data; // Use std::vector<char> to hold packet data
-    size_t size;            // Size of the packet data 1 unit equals 1 byte = 8 bits
-};
-
 // Default packet callback that logs receipt of packets
 void default_on_connect_callback();
 
