@@ -18,10 +18,9 @@ using OnConnectCallback = std::function<void()>;
 
 class Network {
   public:
-    Network(std::string ip_address, uint16_t port, const std::vector<spdlog::sink_ptr> &sinks = {},
-            OnConnectCallback on_connect_callback = default_on_connect_callback);
+    Network(std::string ip_address, uint16_t port, OnConnectCallback on_connect_callback = default_on_connect_callback);
     ~Network();
-    LoggerComponent logger_component;
+    ConsoleLogger logger{"network"};
     void initialize_network();
     bool attempt_to_connect_to_server();
     std::vector<PacketWithSize> get_network_events_received_since_last_tick();

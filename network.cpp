@@ -3,12 +3,9 @@
 
 void default_on_connect_callback() { spdlog::info("connected to server"); }
 
-Network::Network(std::string ip_address, uint16_t port, const std::vector<spdlog::sink_ptr> &sinks,
-                 OnConnectCallback on_connect_callback)
+Network::Network(std::string ip_address, uint16_t port, OnConnectCallback on_connect_callback)
     : ip_address(std::move(ip_address)), port(port), on_connect_callback(std::move(on_connect_callback)),
-      client(nullptr), peer(nullptr), recently_sent_packet_sizes(10), recently_sent_packet_times(10) {
-    logger_component = LoggerComponent("network", sinks);
-}
+      client(nullptr), peer(nullptr), recently_sent_packet_sizes(10), recently_sent_packet_times(10) {}
 
 Network::~Network() {
     if (client != nullptr) {
@@ -46,23 +43,17 @@ float Network::average_bits_per_second_sent() {
  */
 void Network::initialize_network() {
     if (enet_initialize() != 0) {
-        if (logger_component.logging_enabled) {
-            logger_component.get_logger()->error("An error occurred while initializing ENet.");
-        }
+        logger.error("An error occurred while initializing ENet.");
         throw std::runtime_error("ENet initialization failed.");
     }
 
     client = enet_host_create(nullptr, 1, 2, 0, 0);
     if (client == nullptr) {
-        if (logger_component.logging_enabled) {
-            logger_component.get_logger()->error("An error occurred while trying to create an ENet client host.");
-        }
+        logger.error("An error occurred while trying to create an ENet client host.");
         throw std::runtime_error("ENet client host creation failed.");
     }
 
-    if (logger_component.logging_enabled) {
-        logger_component.get_logger()->info("Network initialized.");
-    }
+    logger.info("Network initialized.");
 }
 
 /**
@@ -76,23 +67,17 @@ bool Network::attempt_to_connect_to_server() {
 
     peer = enet_host_connect(client, &address, 2, 0);
     if (peer == nullptr) {
-        if (logger_component.logging_enabled) {
-            logger_component.get_logger()->error("No available peers for initiating an ENet connection.");
-        }
+        logger.error("No available peers for initiating an ENet connection.");
         return false;
     }
 
     ENetEvent event;
     if (enet_host_service(client, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
-        if (logger_component.logging_enabled) {
-            logger_component.get_logger()->info("Connection to {}:{} succeeded.", ip_address, port);
-        }
+        logger.info("Connection to {}:{} succeeded.", ip_address, port);
         return true;
     } else {
         enet_peer_reset(peer);
-        if (logger_component.logging_enabled) {
-            logger_component.get_logger()->error("Connection to {}:{} failed.", ip_address, port);
-        }
+        logger.error("Connection to {}:{} failed.", ip_address, port);
         return false;
     }
 }
@@ -112,10 +97,8 @@ std::vector<PacketWithSize> Network::get_network_events_received_since_last_tick
     while (enet_host_service(client, &event, 0) > 0) {
         switch (event.type) {
         case ENET_EVENT_TYPE_RECEIVE:
-            if (logger_component.logging_enabled) {
-                logger_component.get_logger()->info("Packet received from peer {}: size {} bytes.",
-                                                    event.peer->address.host, event.packet->dataLength);
-            }
+            logger.info("Packet received from peer {}: size {} bytes.", event.peer->address.host,
+                        event.packet->dataLength);
 
             packet_with_size.data.resize(event.packet->dataLength);
 
@@ -128,9 +111,7 @@ std::vector<PacketWithSize> Network::get_network_events_received_since_last_tick
             break;
 
         case ENET_EVENT_TYPE_DISCONNECT:
-            if (logger_component.logging_enabled) {
-                logger_component.get_logger()->info("Peer {} disconnected.", event.peer->address.host);
-            }
+            logger.info("Peer {} disconnected.", event.peer->address.host);
             event.peer->data = nullptr;
             break;
 
@@ -153,10 +134,7 @@ void Network::disconnect_from_server() {
         ENetEvent event;
         while (enet_host_service(client, &event, 3000) > 0) {
             if (event.type == ENET_EVENT_TYPE_DISCONNECT) {
-
-                if (logger_component.logging_enabled) {
-                    logger_component.get_logger()->info("Disconnection succeeded.");
-                }
+                logger.info("Disconnection succeeded.");
                 peer = nullptr;
                 break;
             }
@@ -172,10 +150,7 @@ void Network::disconnect_from_server() {
  * /param reliable whether or not to send the packet reliably
  */
 void Network::send_packet(const void *data, size_t data_size, bool reliable) {
-
-    if (logger_component.logging_enabled) {
-        logger_component.get_logger()->info("Sending packet to server");
-    }
+    logger.info("Sending packet to server");
     ENetPacket *packet = enet_packet_create(data, data_size, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
     enet_peer_send(peer, 0, packet);
     enet_host_flush(peer->host);
