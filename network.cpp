@@ -58,7 +58,7 @@ void Network::initialize_network() {
 
 /**
  * /brief attempts to connect to the server with ip address specified in the
- * constructor returns whether or not the connection was successful
+ * constructor returns whether or not the connection was successful, this waits for up to 5 seconds before stopping
  */
 bool Network::attempt_to_connect_to_server() {
     ENetAddress address;
