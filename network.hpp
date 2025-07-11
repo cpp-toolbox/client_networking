@@ -20,6 +20,7 @@ class Network {
   public:
     Network(std::string ip_address, uint16_t port, OnConnectCallback on_connect_callback = default_on_connect_callback);
     ~Network();
+    void set_server(std::string ip_address, uint16_t port);
     ConsoleLogger logger{"network"};
     void initialize_network();
     bool attempt_to_connect_to_server();

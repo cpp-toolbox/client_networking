@@ -38,6 +38,11 @@ float Network::average_bits_per_second_sent() {
     return static_cast<float>(total_size_bits) / total_time_seconds; // Bits per second
 }
 
+void Network::set_server(std::string ip_address, uint16_t port) {
+    this->ip_address = ip_address;
+    this->port = port;
+}
+
 /**
  * /brief attempts to connect to the server specified in the constructor
  */
