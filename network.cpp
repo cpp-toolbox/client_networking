@@ -1,7 +1,7 @@
 #include "network.hpp"
 #include <stdexcept>
 
-void default_on_connect_callback() { spdlog::info("connected to server"); }
+void default_on_connect_callback() { std::cout << "connected to server" << std::endl; }
 
 Network::Network(std::string ip_address, uint16_t port, OnConnectCallback on_connect_callback)
     : ip_address(std::move(ip_address)), port(port), on_connect_callback(std::move(on_connect_callback)),
@@ -63,7 +63,8 @@ void Network::initialize_network() {
 
 /**
  * /brief attempts to connect to the server with ip address specified in the
- * constructor returns whether or not the connection was successful, this waits for up to 5 seconds before stopping
+ * constructor returns whether or not the connection was successful, this waits
+ * for up to 5 seconds before stopping
  */
 bool Network::attempt_to_connect_to_server() {
     ENetAddress address;
