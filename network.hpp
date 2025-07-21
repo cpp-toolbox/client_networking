@@ -35,6 +35,8 @@ class Network {
 
     ENetHost *client;
 
+    bool connected_to_server = false;
+
   private:
     std::string ip_address;
     uint16_t port;

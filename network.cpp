@@ -80,6 +80,7 @@ bool Network::attempt_to_connect_to_server() {
     ENetEvent event;
     if (enet_host_service(client, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
         logger.info("Connection to {}:{} succeeded.", ip_address, port);
+        connected_to_server = true;
         return true;
     } else {
         enet_peer_reset(peer);
@@ -95,6 +96,12 @@ bool Network::attempt_to_connect_to_server() {
  * /author cuppajoeman
  */
 std::vector<PacketWithSize> Network::get_network_events_received_since_last_tick() {
+
+    if (not connected_to_server) {
+        logger.warn("get_network_events_received_since_last_tick but not connected to server");
+        return {};
+    }
+
     ENetEvent event;
     std::vector<PacketWithSize> received_packets;
 
