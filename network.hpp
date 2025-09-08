@@ -3,9 +3,7 @@
 
 #include <enet/enet.h>
 #include <functional>
-#include <spdlog/spdlog.h>
 #include <string>
-#include <utility>
 
 #include "sbpt_generated_includes.hpp"
 
@@ -21,7 +19,7 @@ class Network {
     Network(std::string ip_address, uint16_t port, OnConnectCallback on_connect_callback = default_on_connect_callback);
     ~Network();
     void set_server(std::string ip_address, uint16_t port);
-    ConsoleLogger logger{"network"};
+    Logger logger{"network"};
     void initialize_network();
     bool attempt_to_connect_to_server();
     std::vector<PacketWithSize> get_network_events_received_since_last_tick();

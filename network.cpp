@@ -1,4 +1,6 @@
 #include "network.hpp"
+#include <iostream>
+#include <ostream>
 #include <stdexcept>
 
 void default_on_connect_callback() { std::cout << "connected to server" << std::endl; }
@@ -163,7 +165,7 @@ void Network::disconnect_from_server() {
  * /param reliable whether or not to send the packet reliably
  */
 void Network::send_packet(const void *data, size_t data_size, bool reliable) {
-    logger.info("Sending packet to server");
+    // logger.info("Sending packet to server");
     ENetPacket *packet = enet_packet_create(data, data_size, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
     enet_peer_send(peer, 0, packet);
     enet_host_flush(peer->host);
