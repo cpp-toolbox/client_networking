@@ -49,18 +49,19 @@ void Network::set_server(std::string ip_address, uint16_t port) {
  * /brief attempts to connect to the server specified in the constructor
  */
 void Network::initialize_network() {
+    LogSection _(global_logger, "initialize_network");
     if (enet_initialize() != 0) {
-        logger.error("An error occurred while initializing ENet.");
+        global_logger.error("An error occurred while initializing ENet.");
         throw std::runtime_error("ENet initialization failed.");
     }
 
     client = enet_host_create(nullptr, 1, 2, 0, 0);
     if (client == nullptr) {
-        logger.error("An error occurred while trying to create an ENet client host.");
+        global_logger.error("An error occurred while trying to create an ENet client host.");
         throw std::runtime_error("ENet client host creation failed.");
     }
 
-    logger.info("Network initialized.");
+    global_logger.info("Network initialized.");
 }
 
 /**
@@ -69,24 +70,25 @@ void Network::initialize_network() {
  * for up to 5 seconds before stopping
  */
 bool Network::attempt_to_connect_to_server() {
+    LogSection _(global_logger, "attempt_to_connect_to_server");
     ENetAddress address;
     enet_address_set_host(&address, ip_address.c_str());
     address.port = port;
 
     peer = enet_host_connect(client, &address, 2, 0);
     if (peer == nullptr) {
-        logger.error("No available peers for initiating an ENet connection.");
+        global_logger.error("No available peers for initiating an ENet connection.");
         return false;
     }
 
     ENetEvent event;
     if (enet_host_service(client, &event, 5000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
-        logger.info("Connection to {}:{} succeeded.", ip_address, port);
+        global_logger.info("Connection to {}:{} succeeded.", ip_address, port);
         connected_to_server = true;
         return true;
     } else {
         enet_peer_reset(peer);
-        logger.error("Connection to {}:{} failed.", ip_address, port);
+        global_logger.error("Connection to {}:{} failed.", ip_address, port);
         return false;
     }
 }
@@ -98,9 +100,10 @@ bool Network::attempt_to_connect_to_server() {
  * /author cuppajoeman
  */
 std::vector<PacketWithSize> Network::get_network_events_received_since_last_tick() {
+    LogSection _(global_logger, "get_network_events_received_since_last_tick");
 
     if (not connected_to_server) {
-        logger.warn("get_network_events_received_since_last_tick but not connected to server");
+        global_logger.warn("not connected to server");
         return {};
     }
 
@@ -112,8 +115,8 @@ std::vector<PacketWithSize> Network::get_network_events_received_since_last_tick
     while (enet_host_service(client, &event, 0) > 0) {
         switch (event.type) {
         case ENET_EVENT_TYPE_RECEIVE:
-            logger.info("Packet received from peer {}: size {} bytes.", event.peer->address.host,
-                        event.packet->dataLength);
+            global_logger.info("Packet received from peer {}: size {} bytes.", event.peer->address.host,
+                               event.packet->dataLength);
 
             packet_with_size.data.resize(event.packet->dataLength);
 
@@ -126,7 +129,7 @@ std::vector<PacketWithSize> Network::get_network_events_received_since_last_tick
             break;
 
         case ENET_EVENT_TYPE_DISCONNECT:
-            logger.info("Peer {} disconnected.", event.peer->address.host);
+            global_logger.info("Peer {} disconnected.", event.peer->address.host);
             event.peer->data = nullptr;
             break;
 
@@ -149,7 +152,7 @@ void Network::disconnect_from_server() {
         ENetEvent event;
         while (enet_host_service(client, &event, 3000) > 0) {
             if (event.type == ENET_EVENT_TYPE_DISCONNECT) {
-                logger.info("Disconnection succeeded.");
+                global_logger.info("Disconnection succeeded.");
                 peer = nullptr;
                 break;
             }
@@ -165,7 +168,8 @@ void Network::disconnect_from_server() {
  * /param reliable whether or not to send the packet reliably
  */
 void Network::send_packet(const void *data, size_t data_size, bool reliable) {
-    // logger.info("Sending packet to server");
+    LogSection _(global_logger, "send_packet");
+    // global_logger.info("Sending packet to server");
     ENetPacket *packet = enet_packet_create(data, data_size, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
     enet_peer_send(peer, 0, packet);
     enet_host_flush(peer->host);
