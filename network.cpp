@@ -51,17 +51,17 @@ void Network::set_server(std::string ip_address, uint16_t port) {
 void Network::initialize_network() {
     LogSection _(global_logger, "initialize_network");
     if (enet_initialize() != 0) {
-        global_logger.error("An error occurred while initializing ENet.");
+        global_logger.error("an error occurred while initializing ENet.");
         throw std::runtime_error("ENet initialization failed.");
     }
 
     client = enet_host_create(nullptr, 1, 2, 0, 0);
     if (client == nullptr) {
-        global_logger.error("An error occurred while trying to create an ENet client host.");
+        global_logger.error("an error occurred while trying to create an ENet client host.");
         throw std::runtime_error("ENet client host creation failed.");
     }
 
-    global_logger.info("Network initialized.");
+    global_logger.info("network initialized.");
 }
 
 /**
