@@ -7,7 +7,9 @@ void default_on_connect_callback() { std::cout << "connected to server" << std::
 
 Network::Network(std::string ip_address, uint16_t port, OnConnectCallback on_connect_callback)
     : ip_address(std::move(ip_address)), port(port), on_connect_callback(std::move(on_connect_callback)),
-      client(nullptr), peer(nullptr), recently_sent_packet_sizes(10), recently_sent_packet_times(10) {}
+      client(nullptr), peer(nullptr), recently_sent_packet_sizes(10), recently_sent_packet_times(10) {
+    initialize_network();
+}
 
 Network::~Network() {
     if (client != nullptr) {
