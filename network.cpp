@@ -171,10 +171,16 @@ void Network::disconnect_from_server() {
  */
 void Network::send_packet(const void *data, size_t data_size, bool reliable) {
     LogSection _(global_logger, "send_packet");
+
+    if (not connected_to_server) {
+        global_logger.warn("not connected to server can't send the packet");
+        return;
+    }
     // global_logger.info("Sending packet to server");
     ENetPacket *packet = enet_packet_create(data, data_size, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
     enet_peer_send(peer, 0, packet);
     enet_host_flush(peer->host);
+    global_logger.debug("just sent the packet");
     recently_sent_packet_sizes.push_back(packet->dataLength);
     recently_sent_packet_times.push_back(std::chrono::steady_clock::now());
 }

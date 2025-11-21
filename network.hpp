@@ -16,12 +16,20 @@ using OnConnectCallback = std::function<void()>;
 
 class Network {
   public:
-    Network(std::string ip_address, uint16_t port, OnConnectCallback on_connect_callback = default_on_connect_callback);
+    Network(std::string ip_address, uint16_t port = 7777,
+            OnConnectCallback on_connect_callback = default_on_connect_callback);
     ~Network();
     void set_server(std::string ip_address, uint16_t port);
     Logger logger{"network"};
     void initialize_network();
     bool attempt_to_connect_to_server();
+    /**
+     * @brief gets packets and maintains connection to server
+     *
+     *
+     * @warn if you're connected to the server, and you don't call this for a while you'll automatically disconnect
+     *
+     */
     std::vector<PacketWithSize> get_network_events_received_since_last_tick();
     void disconnect_from_server();
     void send_packet(const void *data, size_t data_size, bool reliable = false);
