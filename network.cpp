@@ -102,7 +102,7 @@ bool Network::attempt_to_connect_to_server() {
  * /author cuppajoeman
  */
 std::vector<PacketWithSize> Network::get_network_events_received_since_last_tick() {
-    GlobalLogSection _("get_network_events_received_since_last_tick");
+    GlobalLogSection _("get_network_events_received_since_last_tick", false);
 
     if (not connected_to_server) {
         global_logger->warn("not connected to server");
