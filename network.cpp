@@ -178,9 +178,10 @@ void Network::send_packet(const void *data, size_t data_size, bool reliable) {
     }
     // global_logger->info("Sending packet to server");
     ENetPacket *packet = enet_packet_create(data, data_size, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
+    size_t length = packet->dataLength;
     enet_peer_send(peer, 0, packet);
     enet_host_flush(peer->host);
     global_logger->debug("just sent the packet");
-    recently_sent_packet_sizes.push_back(packet->dataLength);
+    recently_sent_packet_sizes.push_back(length);
     recently_sent_packet_times.push_back(std::chrono::steady_clock::now());
 }
